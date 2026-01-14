@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import LiveBanner from '../components/LiveBanner';
+import EmailCapture from '../components/EmailCapture';
 
 interface Video {
   id: string;
@@ -30,6 +32,12 @@ interface Channel {
 interface YouTubeData {
   channel: Channel;
   videos: Video[];
+}
+
+interface LiveStatus {
+  isLive: boolean;
+  liveVideoId: string | null;
+  title?: string;
 }
 
 function formatNumber(num: string): string {
@@ -70,18 +78,27 @@ function formatDate(dateString: string): string {
 
 export default function ShowPage() {
   const [data, setData] = useState<YouTubeData | null>(null);
+  const [liveStatus, setLiveStatus] = useState<LiveStatus>({ isLive: false, liveVideoId: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        // Fetch channel and videos
         const response = await fetch('/api/youtube');
         if (!response.ok) {
           throw new Error('Failed to fetch YouTube data');
         }
         const result = await response.json();
         setData(result);
+
+        // Check for live stream
+        const liveResponse = await fetch('/api/youtube/live');
+        if (liveResponse.ok) {
+          const liveData = await liveResponse.json();
+          setLiveStatus(liveData);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch YouTube data';
         setError(errorMessage);
@@ -90,6 +107,21 @@ export default function ShowPage() {
       }
     }
     fetchData();
+
+    // Check for live status every 30 seconds
+    const liveInterval = setInterval(async () => {
+      try {
+        const liveResponse = await fetch('/api/youtube/live');
+        if (liveResponse.ok) {
+          const liveData = await liveResponse.json();
+          setLiveStatus(liveData);
+        }
+      } catch (err) {
+        console.error('Error checking live status:', err);
+      }
+    }, 30000);
+
+    return () => clearInterval(liveInterval);
   }, []);
 
   if (loading) {
@@ -124,13 +156,64 @@ export default function ShowPage() {
   }
 
   const { channel, videos } = data;
+  const videoIds = videos.map(v => v.id);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <Header />
       
+      {/* Live Banner */}
+      {liveStatus.isLive && <LiveBanner />}
+
+      {/* Video Player Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Video Player */}
+          <div className="lg:col-span-2">
+            {liveStatus.isLive && liveStatus.liveVideoId ? (
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  src={`https://www.youtube.com/embed/${liveStatus.liveVideoId}?autoplay=1&cc_load_policy=1`}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  title="Live Stream"
+                />
+              </div>
+            ) : (
+              <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoIds[0] || ''}?autoplay=1&playlist=${videoIds.slice(0, 20).join(',')}&loop=1&playnext=1`}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title="Video Player"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Live Chat / Email Capture */}
+          <div className="space-y-6">
+            {liveStatus.isLive && liveStatus.liveVideoId ? (
+              <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg overflow-hidden">
+                <div className="p-3 bg-red-600 text-white font-semibold text-center">
+                  🔴 LIVE NOW
+                </div>
+                <div className="p-4 text-sm text-gray-400">
+                  <p>Watch the live stream above. The chat appears on YouTube when enabled.</p>
+                  <p className="mt-2">Click the video to open in YouTube for full chat experience.</p>
+                </div>
+              </div>
+            ) : (
+              <EmailCapture />
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Channel Header */}
-      <section className="bg-[var(--card-bg)] border-b border-[var(--border)]">
+      <section className="bg-[var(--card-bg)] border-t border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative w-32 h-32 rounded-full overflow-hidden flex-shrink-0 border-2 border-[var(--border)]">
