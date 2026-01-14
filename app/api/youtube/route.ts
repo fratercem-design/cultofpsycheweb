@@ -47,7 +47,11 @@ export async function GET() {
     
     const channelResponse = await fetch(channelSearchUrl);
     if (!channelResponse.ok) {
-      throw new Error('Failed to fetch channel');
+      const errorData = await channelResponse.json();
+      return NextResponse.json(
+        { error: `YouTube API error: ${JSON.stringify(errorData)}` },
+        { status: channelResponse.status }
+      );
     }
     
     const channelData = await channelResponse.json();
@@ -59,12 +63,32 @@ export async function GET() {
       );
     }
 
-    const channelId = channelData.items[0].snippet.channelId;
+    // Get channel ID from search results - when type=channel, ID is in id.channelId
+    const searchResult = channelData.items[0] as { id?: { channelId?: string }; snippet?: { channelId?: string } };
+    const channelId = searchResult.id?.channelId || searchResult.snippet?.channelId;
+    
+    if (!channelId) {
+      return NextResponse.json(
+        { error: 'Could not extract channel ID from search results', debug: JSON.stringify(searchResult) },
+        { status: 500 }
+      );
+    }
 
     // Get channel details
     const channelDetailsUrl = `https://www.googleapis.com/youtube/v3/channels?key=${YOUTUBE_API_KEY}&id=${channelId}&part=snippet,statistics,contentDetails`;
     const channelDetailsResponse = await fetch(channelDetailsUrl);
+    if (!channelDetailsResponse.ok) {
+      const errorData = await channelDetailsResponse.json();
+      throw new Error(`YouTube API error: ${JSON.stringify(errorData)}`);
+    }
     const channelDetails = await channelDetailsResponse.json();
+
+    if (!channelDetails.items || channelDetails.items.length === 0) {
+      return NextResponse.json(
+        { error: 'Channel details not found' },
+        { status: 404 }
+      );
+    }
 
     // Get the uploads playlist ID
     const uploadsPlaylistId = channelDetails.items[0].contentDetails.relatedPlaylists.uploads;
@@ -72,12 +96,35 @@ export async function GET() {
     // Get videos from the uploads playlist
     const videosUrl = `https://www.googleapis.com/youtube/v3/playlistItems?key=${YOUTUBE_API_KEY}&playlistId=${uploadsPlaylistId}&part=snippet,contentDetails&maxResults=50&order=date`;
     const videosResponse = await fetch(videosUrl);
+    if (!videosResponse.ok) {
+      const errorData = await videosResponse.json();
+      throw new Error(`YouTube API error: ${JSON.stringify(errorData)}`);
+    }
     const videosData = await videosResponse.json();
+
+    if (!videosData.items || videosData.items.length === 0) {
+      return NextResponse.json({
+        channel: {
+          id: channelId,
+          title: channelDetails.items[0].snippet.title,
+          description: channelDetails.items[0].snippet.description,
+          thumbnail: channelDetails.items[0].snippet.thumbnails.high.url,
+          subscriberCount: channelDetails.items[0].statistics.subscriberCount,
+          videoCount: channelDetails.items[0].statistics.videoCount,
+          viewCount: channelDetails.items[0].statistics.viewCount,
+        },
+        videos: [],
+      });
+    }
 
     // Get detailed video information
     const videoIds = (videosData.items as PlaylistItem[]).map((item) => item.contentDetails.videoId).join(',');
     const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?key=${YOUTUBE_API_KEY}&id=${videoIds}&part=snippet,statistics,contentDetails`;
     const videoDetailsResponse = await fetch(videoDetailsUrl);
+    if (!videoDetailsResponse.ok) {
+      const errorData = await videoDetailsResponse.json();
+      throw new Error(`YouTube API error: ${JSON.stringify(errorData)}`);
+    }
     const videoDetails = await videoDetailsResponse.json();
 
     return NextResponse.json({
