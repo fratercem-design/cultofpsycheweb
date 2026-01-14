@@ -137,25 +137,27 @@ export default function ShowPage() {
       }
     }
     fetchData();
-    
-    return () => {
-      isMounted = false;
-    };
 
     // Check for live status every 30 seconds
     const liveInterval = setInterval(async () => {
+      if (!isMounted) return;
       try {
         const liveResponse = await fetch('/api/youtube/live');
         if (liveResponse.ok) {
           const liveData = await liveResponse.json();
-          setLiveStatus(liveData);
+          if (isMounted) {
+            setLiveStatus(liveData);
+          }
         }
       } catch (err) {
         console.error('Error checking live status:', err);
       }
     }, 30000);
-
-    return () => clearInterval(liveInterval);
+    
+    return () => {
+      isMounted = false;
+      clearInterval(liveInterval);
+    };
   }, []);
 
   if (loading) {
