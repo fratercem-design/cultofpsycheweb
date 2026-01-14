@@ -83,30 +83,64 @@ export default function ShowPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchData() {
       try {
-        // Fetch channel and videos
-        const response = await fetch('/api/youtube');
+        // Fetch channel and videos with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch('/api/youtube', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch YouTube data');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch YouTube data (${response.status})`);
         }
         const result = await response.json();
+        
+        if (!isMounted) return;
+        
+        // Check if result has error
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        
         setData(result);
 
         // Check for live stream
         const liveResponse = await fetch('/api/youtube/live');
         if (liveResponse.ok) {
           const liveData = await liveResponse.json();
-          setLiveStatus(liveData);
+          if (isMounted) {
+            setLiveStatus(liveData);
+          }
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch YouTube data';
+        if (!isMounted) return;
+        
+        let errorMessage = 'Failed to fetch YouTube data';
+        if (err instanceof Error) {
+          if (err.name === 'AbortError') {
+            errorMessage = 'Request timed out. Please check your internet connection and try again.';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        console.error('Error fetching YouTube data:', err);
         setError(errorMessage);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
     fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
 
     // Check for live status every 30 seconds
     const liveInterval = setInterval(async () => {
