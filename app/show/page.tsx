@@ -177,13 +177,27 @@ export default function ShowPage() {
       <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
         <Header />
         <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold text-[var(--fg)] mb-2">
+          <div className="text-center max-w-2xl px-4">
+            <h1 className="text-2xl font-semibold text-[var(--fg)] mb-4">
               Error loading content
             </h1>
-            <p className="text-gray-400">
-              {error || 'Failed to load YouTube data'}
-            </p>
+            <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-6 mb-4">
+              <p className="text-gray-400 mb-2">
+                {error || 'Failed to load YouTube data'}
+              </p>
+              <p className="text-sm text-gray-500 mt-4">
+                This usually means the YouTube API key is not configured in Vercel.
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                Please add <code className="bg-[var(--bg)] px-2 py-1 rounded">YOUTUBE_API_KEY</code> to your Vercel environment variables.
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white rounded-lg transition-colors"
+            >
+              Retry
+            </button>
           </div>
         </div>
         <Footer />
