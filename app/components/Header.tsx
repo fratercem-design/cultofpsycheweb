@@ -4,34 +4,49 @@ export default function Header() {
   return (
     <header className="flex justify-between items-center px-4 sm:px-8 py-4 border-b border-[var(--border)]">
       <Link href="/" className="font-bold text-xl text-[var(--accent)]">
-        Cult of Psyche
+        Vault + Signal
       </Link>
       <nav>
-        <ul className="flex gap-6 list-none">
+        <ul className="flex gap-4 sm:gap-6 list-none text-sm">
           <li>
-            <Link href="/show" className="text-[var(--fg)] no-underline text-sm hover:text-[var(--accent)] transition-colors">
-              Show
+            <Link href="/" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Home
             </Link>
           </li>
           <li>
-            <a href="#mantras" className="text-[var(--fg)] no-underline text-sm hover:text-[var(--accent)] transition-colors">
-              Mantras
-            </a>
+            <Link href="/start-here" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Start Here
+            </Link>
           </li>
           <li>
-            <a href="#store" className="text-[var(--fg)] no-underline text-sm hover:text-[var(--accent)] transition-colors">
-              Store
-            </a>
+            <Link href="/bio" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Bio
+            </Link>
           </li>
           <li>
-            <a href="#charity" className="text-[var(--fg)] no-underline text-sm hover:text-[var(--accent)] transition-colors">
-              Charity
-            </a>
+            <Link href="/teachings" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Teachings
+            </Link>
           </li>
           <li>
-            <a href="#about" className="text-[var(--fg)] no-underline text-sm hover:text-[var(--accent)] transition-colors">
-              About
-            </a>
+            <Link href="/recommendations" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Recommendations
+            </Link>
+          </li>
+          <li>
+            <Link href="/vault" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Vault
+            </Link>
+          </li>
+          <li>
+            <Link href="/show" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Live
+            </Link>
+          </li>
+          <li>
+            <Link href="#join" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+              Join
+            </Link>
           </li>
         </ul>
       </nav>
