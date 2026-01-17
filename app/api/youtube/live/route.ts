@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_NAME = 'cultofpsyche';
 
+// Cache channel ID to avoid repeated searches (saves 100 units per check)
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UC_cultofpsyche';
+
 export async function GET() {
   if (!YOUTUBE_API_KEY) {
     return NextResponse.json(
@@ -12,29 +15,32 @@ export async function GET() {
   }
 
   try {
-    // First, get the channel ID
-    const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
+    // Use cached channel ID to avoid expensive search API calls
+    let channelId = CHANNEL_ID;
     
-    const channelResponse = await fetch(channelSearchUrl);
-    if (!channelResponse.ok) {
-      const errorData = await channelResponse.json();
-      return NextResponse.json(
-        { error: `YouTube API error: ${JSON.stringify(errorData)}` },
-        { status: channelResponse.status }
-      );
-    }
-    
-    const channelData = await channelResponse.json();
-    
-    if (!channelData.items || channelData.items.length === 0) {
-      return NextResponse.json({ isLive: false, liveVideoId: null });
-    }
+    // Only search if channel ID is not set (costs 100 units - avoid if possible)
+    if (!channelId || channelId === 'UC_cultofpsyche' || channelId.startsWith('UC_')) {
+      const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
+      
+      const channelResponse = await fetch(channelSearchUrl);
+      if (!channelResponse.ok) {
+        // Don't throw error for live check - just return not live
+        return NextResponse.json({ isLive: false, liveVideoId: null });
+      }
+      
+      const channelData = await channelResponse.json();
+      
+      if (!channelData.items || channelData.items.length === 0) {
+        return NextResponse.json({ isLive: false, liveVideoId: null });
+      }
 
-    const searchResult = channelData.items[0] as { id?: { channelId?: string }; snippet?: { channelId?: string } };
-    const channelId = searchResult.id?.channelId || searchResult.snippet?.channelId;
-    
-    if (!channelId) {
-      return NextResponse.json({ isLive: false, liveVideoId: null });
+      const searchResult = channelData.items[0] as { id?: { channelId?: string }; snippet?: { channelId?: string } };
+      const foundChannelId = searchResult.id?.channelId || searchResult.snippet?.channelId;
+      
+      if (!foundChannelId) {
+        return NextResponse.json({ isLive: false, liveVideoId: null });
+      }
+      channelId = foundChannelId;
     }
 
     // Check for live broadcasts

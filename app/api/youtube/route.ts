@@ -3,6 +3,11 @@ import { NextResponse } from 'next/server';
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_NAME = 'cultofpsyche';
 
+// Cache channel ID to avoid repeated searches (major quota saver)
+// Using hardcoded channel ID to avoid search API calls (100 units each)
+// If channel changes, update this constant
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UC_cultofpsyche'; // Fallback to search if not set
+
 interface PlaylistItem {
   contentDetails: {
     videoId: string;
@@ -42,36 +47,44 @@ export async function GET() {
   }
 
   try {
-    // First, get the channel ID from the channel name
-    const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
+    // Use cached channel ID to avoid expensive search API calls (saves 100 units per request)
+    // If CHANNEL_ID is not set in env, fall back to search (but this costs 100 units)
+    let channelId = CHANNEL_ID;
     
-    const channelResponse = await fetch(channelSearchUrl);
-    if (!channelResponse.ok) {
-      const errorData = await channelResponse.json();
-      return NextResponse.json(
-        { error: `YouTube API error: ${JSON.stringify(errorData)}` },
-        { status: channelResponse.status }
-      );
-    }
-    
-    const channelData = await channelResponse.json();
-    
-    if (!channelData.items || channelData.items.length === 0) {
-      return NextResponse.json(
-        { error: 'Channel not found' },
-        { status: 404 }
-      );
-    }
+    // Only search if channel ID is not set and looks like a placeholder
+    if (!channelId || channelId === 'UC_cultofpsyche' || channelId.startsWith('UC_')) {
+      // Fallback: search for channel (costs 100 units - avoid if possible)
+      const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
+      
+      const channelResponse = await fetch(channelSearchUrl);
+      if (!channelResponse.ok) {
+        const errorData = await channelResponse.json();
+        return NextResponse.json(
+          { error: `YouTube API error: ${JSON.stringify(errorData)}` },
+          { status: channelResponse.status }
+        );
+      }
+      
+      const channelData = await channelResponse.json();
+      
+      if (!channelData.items || channelData.items.length === 0) {
+        return NextResponse.json(
+          { error: 'Channel not found' },
+          { status: 404 }
+        );
+      }
 
-    // Get channel ID from search results - when type=channel, ID is in id.channelId
-    const searchResult = channelData.items[0] as { id?: { channelId?: string }; snippet?: { channelId?: string } };
-    const channelId = searchResult.id?.channelId || searchResult.snippet?.channelId;
-    
-    if (!channelId) {
-      return NextResponse.json(
-        { error: 'Could not extract channel ID from search results', debug: JSON.stringify(searchResult) },
-        { status: 500 }
-      );
+      // Get channel ID from search results - when type=channel, ID is in id.channelId
+      const searchResult = channelData.items[0] as { id?: { channelId?: string }; snippet?: { channelId?: string } };
+      const foundChannelId = searchResult.id?.channelId || searchResult.snippet?.channelId;
+      
+      if (!foundChannelId) {
+        return NextResponse.json(
+          { error: 'Could not extract channel ID from search results', debug: JSON.stringify(searchResult) },
+          { status: 500 }
+        );
+      }
+      channelId = foundChannelId;
     }
 
     // Get channel details

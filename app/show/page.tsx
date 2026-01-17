@@ -138,7 +138,7 @@ export default function ShowPage() {
     }
     fetchData();
 
-    // Check for live status every 30 seconds
+    // Check for live status every 60 seconds (reduced from 30s to save API quota)
     const liveInterval = setInterval(async () => {
       if (!isMounted) return;
       try {
@@ -152,7 +152,7 @@ export default function ShowPage() {
       } catch (err) {
         console.error('Error checking live status:', err);
       }
-    }, 30000);
+    }, 60000); // 60 seconds instead of 30 to reduce API quota usage
     
     return () => {
       isMounted = false;
