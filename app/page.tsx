@@ -74,7 +74,7 @@ export default function Home() {
             Check back soon for our latest episode release.
           </p>
           <Link 
-            href="/show" 
+            href="/live" 
             className="inline-block px-6 py-2 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] rounded-lg transition-colors"
           >
             View Schedule
@@ -128,7 +128,7 @@ export default function Home() {
       </section>
 
       {/* Join Community CTA */}
-      <section id="join" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-12 text-center">
           <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
             Ready to Dive Deeper?
@@ -137,18 +137,18 @@ export default function Home() {
             Join our community to access exclusive teachings, resources, and updates.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="#join" 
-              className="px-8 py-3 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white font-semibold rounded-lg transition-colors"
-            >
-              Join Now
-            </Link>
-            <Link 
-              href="/start-here" 
-              className="px-8 py-3 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors"
-            >
-              Start Your Journey
-            </Link>
+          <Link 
+            href="/join" 
+            className="px-8 py-3 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white font-semibold rounded-lg transition-colors"
+          >
+            Join Now
+          </Link>
+          <Link 
+            href="/teachings/start-here" 
+            className="px-8 py-3 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors"
+          >
+            Start Your Journey
+          </Link>
           </div>
         </div>
       </section>

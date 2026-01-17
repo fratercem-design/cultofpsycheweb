@@ -23,7 +23,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/start-here" className="hover:text-[var(--accent)] transition-colors">
+                <Link href="/teachings/start-here" className="hover:text-[var(--accent)] transition-colors">
                   Start Here
                 </Link>
               </li>
@@ -48,12 +48,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/show" className="hover:text-[var(--accent)] transition-colors">
+                <Link href="/live" className="hover:text-[var(--accent)] transition-colors">
                   Live
                 </Link>
               </li>
               <li>
-                <Link href="#join" className="hover:text-[var(--accent)] transition-colors">
+                <Link href="/join" className="hover:text-[var(--accent)] transition-colors">
                   Join
                 </Link>
               </li>

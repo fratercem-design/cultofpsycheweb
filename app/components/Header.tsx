@@ -14,7 +14,7 @@ export default function Header() {
             </Link>
           </li>
           <li>
-            <Link href="/start-here" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+            <Link href="/teachings/start-here" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
               Start Here
             </Link>
           </li>
@@ -39,12 +39,12 @@ export default function Header() {
             </Link>
           </li>
           <li>
-            <Link href="/show" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+            <Link href="/live" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
               Live
             </Link>
           </li>
           <li>
-            <Link href="#join" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
+            <Link href="/join" className="text-[var(--fg)] no-underline hover:text-[var(--accent)] transition-colors">
               Join
             </Link>
           </li>
