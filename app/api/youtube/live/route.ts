@@ -4,7 +4,8 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_NAME = 'cultofpsyche';
 
 // Cache channel ID to avoid repeated searches (saves 100 units per check)
-const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UC_cultofpsyche';
+// Use empty string as fallback to properly detect when env var is not set
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || '';
 
 export async function GET() {
   if (!YOUTUBE_API_KEY) {
@@ -19,7 +20,8 @@ export async function GET() {
     let channelId = CHANNEL_ID;
     
     // Only search if channel ID is not set (costs 100 units - avoid if possible)
-    if (!channelId || channelId === 'UC_cultofpsyche' || channelId.startsWith('UC_')) {
+    // Valid YouTube channel IDs are 24 characters and start with 'UC' (no underscore)
+    if (!channelId || channelId.trim() === '') {
       const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
       
       const channelResponse = await fetch(channelSearchUrl);

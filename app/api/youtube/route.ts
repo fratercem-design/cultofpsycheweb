@@ -6,7 +6,8 @@ const CHANNEL_NAME = 'cultofpsyche';
 // Cache channel ID to avoid repeated searches (major quota saver)
 // Using hardcoded channel ID to avoid search API calls (100 units each)
 // If channel changes, update this constant
-const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || 'UC_cultofpsyche'; // Fallback to search if not set
+// Use empty string as fallback to properly detect when env var is not set
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || '';
 
 interface PlaylistItem {
   contentDetails: {
@@ -51,8 +52,9 @@ export async function GET() {
     // If CHANNEL_ID is not set in env, fall back to search (but this costs 100 units)
     let channelId = CHANNEL_ID;
     
-    // Only search if channel ID is not set and looks like a placeholder
-    if (!channelId || channelId === 'UC_cultofpsyche' || channelId.startsWith('UC_')) {
+    // Only search if channel ID is not set (empty string means env var not configured)
+    // Valid YouTube channel IDs are 24 characters and start with 'UC' (no underscore)
+    if (!channelId || channelId.trim() === '') {
       // Fallback: search for channel (costs 100 units - avoid if possible)
       const channelSearchUrl = `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&q=${CHANNEL_NAME}&type=channel&part=snippet&maxResults=1`;
       
