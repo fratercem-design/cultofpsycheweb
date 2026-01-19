@@ -84,15 +84,20 @@ export default function ShowPage() {
 
   useEffect(() => {
     let isMounted = true;
+    let controller: AbortController | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
     
     async function fetchData() {
       try {
         // Fetch channel and videos with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        controller = new AbortController();
+        timeoutId = setTimeout(() => controller?.abort(), 10000); // 10 second timeout
         
         const response = await fetch('/api/youtube', { signal: controller.signal });
-        clearTimeout(timeoutId);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -157,6 +162,14 @@ export default function ShowPage() {
     return () => {
       isMounted = false;
       clearInterval(liveInterval);
+      // Abort ongoing fetch request if component unmounts
+      if (controller) {
+        controller.abort();
+      }
+      // Clear timeout if still pending
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
