@@ -26,7 +26,7 @@ export default function Home() {
             Explore Teachings
           </Link>
           <Link 
-            href="#join" 
+            href="/join" 
             className="px-8 py-3 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors"
           >
             Join the Community
