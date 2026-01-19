@@ -1,155 +1,217 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import EmailCapture from './components/EmailCapture';
+import LiveBanner from './components/LiveBanner';
+
+interface Video {
+  id: string;
+  title: string;
+  thumbnail: string;
+  videoUrl: string;
+}
+
+interface LiveStatus {
+  isLive: boolean;
+  liveVideoId: string | null;
+  title?: string;
+}
 
 export default function Home() {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [liveStatus, setLiveStatus] = useState<LiveStatus>({ isLive: false, liveVideoId: null });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch YouTube videos
+        const response = await fetch('/api/youtube');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.videos) {
+            setVideos(data.videos.slice(0, 6)); // Get first 6 for featured clips
+          }
+        }
+
+        // Check live status
+        const liveResponse = await fetch('/api/youtube/live');
+        if (liveResponse.ok) {
+          const liveData = await liveResponse.json();
+          setLiveStatus(liveData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+
+    // Check for live status every 60 seconds
+    const liveInterval = setInterval(async () => {
+      try {
+        const liveResponse = await fetch('/api/youtube/live');
+        if (liveResponse.ok) {
+          const liveData = await liveResponse.json();
+          setLiveStatus(liveData);
+        }
+      } catch (error) {
+        console.error('Error checking live status:', error);
+      }
+    }, 60000);
+
+    return () => clearInterval(liveInterval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <Header />
       
+      {/* Live Banner */}
+      {liveStatus.isLive && <LiveBanner />}
+
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center">
-        <h1 className="text-5xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
-          Vault + Signal
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
+          Cult of Psyche
         </h1>
-        <p className="text-xl sm:text-2xl text-gray-400 mb-8">
-          Occult wisdom for the modern seeker
-        </p>
-        <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-12">
-          A curated collection of teachings, recommendations, and insights for your spiritual journey.
+        <p className="text-xl sm:text-2xl text-gray-300 mb-12 max-w-2xl mx-auto">
+          Occult wisdom and transformative teachings for the modern seeker
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link 
-            href="/teachings" 
-            className="px-8 py-3 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white font-semibold rounded-lg transition-colors"
+            href="#alerts" 
+            className="px-8 py-4 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white font-semibold rounded-lg transition-colors text-lg"
           >
-            Explore Teachings
+            Get Alerts
           </Link>
-          <Link 
-            href="/join" 
-            className="px-8 py-3 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors"
+          <a 
+            href="https://youtube.com/@cultofpsyche" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-8 py-4 border-2 border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors text-lg"
           >
-            Join the Community
-          </Link>
+            Watch on YouTube
+          </a>
         </div>
       </section>
 
-      {/* Featured Teaching */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
-          Featured Teaching
-        </h2>
-        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-8 max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="px-3 py-1 bg-[var(--accent)]/20 text-[var(--accent)] text-sm rounded-full">
-              Practice
-            </span>
-            <span className="text-gray-400 text-sm">free</span>
+      {/* Live Status Block */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {liveStatus.isLive && liveStatus.liveVideoId ? (
+          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg overflow-hidden">
+            <div className="p-4 bg-red-600 text-white font-bold text-center text-lg">
+              🔴 LIVE NOW
+            </div>
+            <div className="w-full aspect-video bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${liveStatus.liveVideoId}?autoplay=1`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                title="Live Stream"
+              />
+            </div>
           </div>
-          <h3 className="text-2xl font-semibold mb-3">The Sacred Pause</h3>
-          <p className="text-gray-300 mb-4">
-            Discover the power of intentional stillness in a world of constant noise and distraction.
-          </p>
-          <div className="flex items-center gap-4 text-sm text-gray-400 mb-6">
-            <span>2 min read</span>
-            <span>•</span>
-            <span>January 15, 2024</span>
+        ) : (
+          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
+              Latest Upload
+            </h2>
+            {!loading && videos.length > 0 ? (
+              <div className="w-full max-w-4xl mx-auto aspect-video bg-black rounded-lg overflow-hidden">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videos[0].id}?autoplay=0`}
+                  className="w-full h-full"
+                  allow="encrypted-media"
+                  allowFullScreen
+                  title={videos[0].title}
+                />
+              </div>
+            ) : (
+              <p className="text-gray-400">
+                {loading ? 'Loading...' : 'Check back soon for new content.'}
+              </p>
+            )}
           </div>
-          <Link 
-            href="/teachings/the-sacred-pause" 
-            className="inline-block text-[var(--accent)] hover:text-[#d4b8ff] transition-colors font-semibold"
-          >
-            Read Full →
-          </Link>
-        </div>
+        )}
       </section>
 
-      {/* Latest Episode */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
-          Latest Episode
-        </h2>
-        <div className="text-center">
-          <p className="text-gray-400 mb-6">
-            Check back soon for our latest episode release.
-          </p>
-          <Link 
-            href="/live" 
-            className="inline-block px-6 py-2 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] rounded-lg transition-colors"
-          >
-            View Schedule
-          </Link>
-        </div>
+      {/* Email Signup Card */}
+      <section id="alerts" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <EmailCapture />
       </section>
 
-      {/* Explore Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl font-bold mb-12 text-center bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
-          Explore
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent)] transition-colors">
-            <h3 className="text-xl font-semibold mb-2">Teachings</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Deep dives into occult wisdom, practice, and theory.
-            </p>
-            <Link 
-              href="/teachings" 
-              className="text-[var(--accent)] hover:text-[#d4b8ff] transition-colors text-sm font-semibold"
-            >
-              Explore →
-            </Link>
-          </div>
-          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent)] transition-colors">
-            <h3 className="text-xl font-semibold mb-2">Recommendations</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Curated books, tools, creators, and playlists.
-            </p>
-            <Link 
-              href="/recommendations" 
-              className="text-[var(--accent)] hover:text-[#d4b8ff] transition-colors text-sm font-semibold"
-            >
-              Explore →
-            </Link>
-          </div>
-          <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-6 hover:border-[var(--accent)] transition-colors">
-            <h3 className="text-xl font-semibold mb-2">The Vault</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Free resources and member-exclusive downloads.
-            </p>
-            <Link 
-              href="/vault" 
-              className="text-[var(--accent)] hover:text-[#d4b8ff] transition-colors text-sm font-semibold"
-            >
-              Explore →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Join Community CTA */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-12 text-center">
-          <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
-            Ready to Dive Deeper?
+      {/* Featured Clips Grid */}
+      {videos.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[var(--accent)] to-[#d4b8ff] bg-clip-text text-transparent">
+            Featured Clips
           </h2>
-          <p className="text-gray-300 mb-8 text-lg">
-            Join our community to access exclusive teachings, resources, and updates.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link 
-            href="/join" 
-            className="px-8 py-3 bg-[var(--accent)] hover:bg-[#8b5fd6] text-white font-semibold rounded-lg transition-colors"
-          >
-            Join Now
-          </Link>
-          <Link 
-            href="/teachings/start-here" 
-            className="px-8 py-3 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--fg)] font-semibold rounded-lg transition-colors"
-          >
-            Start Your Journey
-          </Link>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {videos.map((video) => (
+              <a
+                key={video.id}
+                href={video.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block aspect-video bg-[var(--card-bg)] rounded-lg overflow-hidden border border-[var(--border)] hover:border-[var(--accent)] transition-all duration-300"
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={video.thumbnail}
+                    alt={video.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </a>
+            ))}
           </div>
+        </section>
+      )}
+
+      {/* Social Links Row */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-wrap justify-center gap-6">
+          <a
+            href="https://youtube.com/@cultofpsyche"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-[var(--accent)] transition-colors text-lg font-semibold"
+          >
+            YouTube
+          </a>
+          <a
+            href="https://x.com/psycheawakens"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-[var(--accent)] transition-colors text-lg font-semibold"
+          >
+            X (Twitter)
+          </a>
+          <a
+            href="https://instagram.com/psycheawakens"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-[var(--accent)] transition-colors text-lg font-semibold"
+          >
+            Instagram
+          </a>
+          <a
+            href="https://tiktok.com/@cultofpsyche"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-[var(--accent)] transition-colors text-lg font-semibold"
+          >
+            TikTok
+          </a>
         </div>
       </section>
 

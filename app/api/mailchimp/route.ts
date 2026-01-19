@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY;
 const MAILCHIMP_LIST_ID = process.env.MAILCHIMP_LIST_ID;
 const MAILCHIMP_SERVER = process.env.MAILCHIMP_SERVER;
 const MANDRILL_API_KEY = process.env.MANDRILL_API_KEY;
+
+// Mailchimp uses MD5 hash of lowercase email as member ID
+function getMailchimpMemberId(email: string): string {
+  return crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
+}
 
 async function sendMandrillEmail(email: string) {
   if (!MANDRILL_API_KEY) {
@@ -61,7 +67,7 @@ async function sendMandrillEmail(email: string) {
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const { email, alertLive, alertUpload } = await request.json();
 
     if (!email) {
       return NextResponse.json(
@@ -77,13 +83,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Build tags array based on preferences
+    const tags: string[] = [];
+    if (alertLive) tags.push('alert_live');
+    if (alertUpload) tags.push('alert_upload');
+
     // Mailchimp uses Basic authentication (username can be anything, password is the API key)
     const authString = Buffer.from(`apikey:${MAILCHIMP_API_KEY}`).toString('base64');
     
-    const response = await fetch(
-      `https://${MAILCHIMP_SERVER}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members`,
+    // Use PUT to create or update member (idempotent)
+    const memberId = getMailchimpMemberId(email);
+    const memberResponse = await fetch(
+      `https://${MAILCHIMP_SERVER}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members/${memberId}`,
       {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Basic ${authString}`,
           'Content-Type': 'application/json',
@@ -95,16 +108,29 @@ export async function POST(request: Request) {
       }
     );
 
-    const data = await response.json();
+    const memberData = await memberResponse.json();
 
-    if (!response.ok) {
-      // Handle duplicate email (already subscribed)
-      if (data.title === 'Member Exists') {
-        return NextResponse.json({ message: 'Email already subscribed' });
-      }
+    if (!memberResponse.ok) {
       return NextResponse.json(
-        { error: data.detail || 'Failed to subscribe' },
-        { status: response.status }
+        { error: memberData.detail || 'Failed to subscribe' },
+        { status: memberResponse.status }
+      );
+    }
+
+    // Add tags to the member
+    if (tags.length > 0) {
+      await fetch(
+        `https://${MAILCHIMP_SERVER}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members/${memberId}/tags`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tags: tags.map(tag => ({ name: tag, status: 'active' })),
+          }),
+        }
       );
     }
 

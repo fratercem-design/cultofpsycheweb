@@ -5,11 +5,11 @@ export default function Footer() {
     <footer className="border-t border-[var(--border)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Vault + Signal */}
+          {/* Cult of Psyche */}
           <div>
-            <h3 className="font-bold text-lg mb-4 text-[var(--accent)]">Vault + Signal</h3>
+            <h3 className="font-bold text-lg mb-4 text-[var(--accent)]">Cult of Psyche</h3>
             <p className="text-sm text-gray-400 mb-4">
-              Occult wisdom for the modern seeker
+              Occult wisdom and transformative teachings for the modern seeker
             </p>
           </div>
 
@@ -23,38 +23,38 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/teachings/start-here" className="hover:text-[var(--accent)] transition-colors">
-                  Start Here
+                <Link href="/recommended" className="hover:text-[var(--accent)] transition-colors">
+                  Recommended
                 </Link>
               </li>
               <li>
-                <Link href="/bio" className="hover:text-[var(--accent)] transition-colors">
-                  Bio
+                <Link href="/community" className="hover:text-[var(--accent)] transition-colors">
+                  Community
                 </Link>
               </li>
               <li>
-                <Link href="/teachings" className="hover:text-[var(--accent)] transition-colors">
-                  Teachings
+                <Link href="/sai-art" className="hover:text-[var(--accent)] transition-colors">
+                  SAI Art
                 </Link>
               </li>
               <li>
-                <Link href="/recommendations" className="hover:text-[var(--accent)] transition-colors">
-                  Recommendations
+                <Link href="/about" className="hover:text-[var(--accent)] transition-colors">
+                  About
                 </Link>
               </li>
               <li>
-                <Link href="/vault" className="hover:text-[var(--accent)] transition-colors">
-                  Vault
+                <Link href="/alerts" className="hover:text-[var(--accent)] transition-colors">
+                  Get Alerts
                 </Link>
               </li>
               <li>
-                <Link href="/live" className="hover:text-[var(--accent)] transition-colors">
-                  Live
+                <Link href="/support" className="hover:text-[var(--accent)] transition-colors">
+                  Support
                 </Link>
               </li>
               <li>
-                <Link href="/join" className="hover:text-[var(--accent)] transition-colors">
-                  Join
+                <Link href="/policies" className="hover:text-[var(--accent)] transition-colors">
+                  Policies
                 </Link>
               </li>
             </ul>
@@ -102,13 +102,13 @@ export default function Footer() {
         <div className="border-t border-[var(--border)] pt-8 mb-8">
           <h3 className="font-semibold text-sm mb-4 text-gray-300">Ethics & Values</h3>
           <p className="text-sm text-gray-400 max-w-3xl leading-relaxed">
-            Vault + Signal operates with integrity, respect, and responsibility. This work demands ethical practice, clear boundaries, and authentic connection. We honor all paths and recognize that each seeker&apos;s journey is unique. Our community is built on mutual respect, consent, and the understanding that true spirituality serves liberation, not exploitation.
+            Cult of Psyche operates with integrity, respect, and responsibility. This work demands ethical practice, clear boundaries, and authentic connection. We honor all paths and recognize that each seeker&apos;s journey is unique. Our community is built on mutual respect, consent, and the understanding that true spirituality serves liberation, not exploitation.
           </p>
         </div>
 
         {/* Copyright */}
         <div className="border-t border-[var(--border)] pt-8 text-center text-sm text-gray-400">
-          <p>© 2026 Vault + Signal. All rights reserved.</p>
+          <p>© 2026 Cult of Psyche. All rights reserved.</p>
         </div>
       </div>
     </footer>

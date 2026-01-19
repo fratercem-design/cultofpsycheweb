@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vault + Signal | Occult wisdom for the modern seeker",
-  description: "Vault + Signal - A curated collection of teachings, recommendations, and insights for your spiritual journey. Occult wisdom for the modern seeker.",
+  title: "Cult of Psyche | Occult wisdom and transformative teachings",
+  description: "Cult of Psyche - Occult wisdom and transformative teachings for the modern seeker. Live streams, community discussions, and authentic spiritual practice.",
 };
 
 export default function RootLayout({
