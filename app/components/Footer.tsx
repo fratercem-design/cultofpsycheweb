@@ -76,17 +76,17 @@ export default function Footer() {
               </li>
               <li>
                 <a 
-                  href="https://twitter.com/cultofpsyche" 
+                  href="https://x.com/psycheawakens" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-[var(--accent)] transition-colors"
                 >
-                  Twitter
+                  X
                 </a>
               </li>
               <li>
                 <a 
-                  href="https://instagram.com/cultofpsyche" 
+                  href="https://instagram.com/psycheawakens" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-[var(--accent)] transition-colors"
